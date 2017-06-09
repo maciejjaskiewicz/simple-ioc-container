@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 
 namespace SimpleIoc.Container
 {
@@ -19,7 +21,17 @@ namespace SimpleIoc.Container
         {
             Type actualType = _registrations[type];
 
-            var instance = Activator.CreateInstance(actualType);
+            var ctors = actualType.GetConstructors();
+            var ctor = ctors.First();
+
+            IEnumerable<Type> paramiterTypes = ctor.GetParameters()
+                .Select(p => p.ParameterType);
+
+            var dependencies = paramiterTypes
+                .Select(p => Resolve(p))
+                .ToArray();
+
+            var instance = Activator.CreateInstance(actualType, dependencies);
 
             return instance;
         }
