@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SimpleIoc.Container.Exceptions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -22,6 +23,9 @@ namespace SimpleIoc.Container
             Type actualType = _registrations[type];
 
             var ctors = actualType.GetConstructors();
+
+            ThrowIfConstructorsAreMoreThanOne(actualType, ctors);
+
             var ctor = ctors.First();
 
             IEnumerable<Type> paramiterTypes = ctor.GetParameters()
@@ -39,6 +43,14 @@ namespace SimpleIoc.Container
         public T Resolve<T>()
         {
             return (T)Resolve(typeof(T));
+        }
+
+        private static void ThrowIfConstructorsAreMoreThanOne(Type actualType, ConstructorInfo[] ctors)
+        {
+            if (ctors.Length > 1)
+            {
+                throw new ComponentHasMultipleConstructorsException(actualType);
+            }
         }
     }
 }
